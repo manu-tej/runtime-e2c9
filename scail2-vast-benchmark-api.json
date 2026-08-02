@@ -1,0 +1,18 @@
+{
+  "1": {"class_type": "UNETLoader", "inputs": {"unet_name": "wan2.1_14B_SCAIL_2_fp8_scaled.safetensors", "weight_dtype": "default"}},
+  "2": {"class_type": "LoraLoaderModelOnly", "inputs": {"model": ["1", 0], "lora_name": "Wan21_I2V_14B_lightx2v_cfg_step_distill_lora_rank64.safetensors", "strength_model": 0.8}},
+  "3": {"class_type": "ModelSamplingSD3", "inputs": {"model": ["2", 0], "shift": 5.0}},
+  "4": {"class_type": "CLIPLoader", "inputs": {"clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors", "type": "wan", "device": "default"}},
+  "5": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["4", 0], "text": "A simple stylized character moves smoothly from side to side while maintaining stable identity and clothing."}},
+  "6": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["4", 0], "text": "blurry, distorted, duplicate limbs, identity drift"}},
+  "7": {"class_type": "VAELoader", "inputs": {"vae_name": "wan_2.1_vae.safetensors"}},
+  "8": {"class_type": "CLIPVisionLoader", "inputs": {"clip_name": "clip_vision_h.safetensors"}},
+  "9": {"class_type": "ComfyFleetSCAILSmokeInputs", "inputs": {"width": 256, "height": 448, "frames": 17}},
+  "10": {"class_type": "CLIPVisionEncode", "inputs": {"clip_vision": ["8", 0], "image": ["9", 0], "crop": "none"}},
+  "11": {"class_type": "WanSCAILToVideo", "inputs": {"positive": ["5", 0], "negative": ["6", 0], "vae": ["7", 0], "width": 256, "height": 448, "length": 17, "batch_size": 1, "pose_strength": 1.0, "pose_start": 0.0, "pose_end": 1.0, "video_frame_offset": 0, "previous_frame_count": 5, "pose_video": ["9", 1], "pose_video_mask": ["9", 2], "replacement_mode": false, "reference_image": ["9", 0], "reference_image_mask": ["9", 3], "clip_vision_output": ["10", 0]}},
+  "12": {"class_type": "KSamplerSelect", "inputs": {"sampler_name": "euler"}},
+  "13": {"class_type": "BasicScheduler", "inputs": {"model": ["3", 0], "scheduler": "simple", "steps": 6, "denoise": 1.0}},
+  "14": {"class_type": "SamplerCustom", "inputs": {"model": ["3", 0], "add_noise": true, "noise_seed": 1, "cfg": 1.0, "positive": ["11", 0], "negative": ["11", 1], "sampler": ["12", 0], "sigmas": ["13", 0], "latent_image": ["11", 2]}},
+  "15": {"class_type": "VAEDecode", "inputs": {"samples": ["14", 0], "vae": ["7", 0]}},
+  "16": {"class_type": "VHS_VideoCombine", "inputs": {"images": ["15", 0], "frame_rate": 16, "loop_count": 0, "filename_prefix": "ComfyFleet/SCAIL2Benchmark", "format": "video/h264-mp4", "pix_fmt": "yuv420p", "crf": 23, "save_metadata": false, "trim_to_audio": false, "pingpong": false, "save_output": true}}
+}

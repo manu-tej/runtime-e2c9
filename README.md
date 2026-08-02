@@ -10,3 +10,7 @@ The Vast endpoint and worker group both have zero active and cold floors, a
 single-worker maximum, and a 60-second inactivity timeout. Transient ComfyUI
 files are periodically reaped and the scratch worker is deleted after the
 benchmark reaches scale-to-zero.
+
+The same bundle also carries `scail2-provision.sh`, the isolated SCAIL-2 FP8
+runtime with public adapters, SAM3 support, and a deterministic benchmark that
+uses generated in-memory fixtures rather than user media.
