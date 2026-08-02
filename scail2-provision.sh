@@ -8,6 +8,8 @@ set -Eeuo pipefail
 WORKSPACE_DIR="${WORKSPACE:-/workspace}"
 COMFY_DIR="${WORKSPACE_DIR}/ComfyUI"
 MODEL_DIR="${COMFY_DIR}/models"
+WRAPPER_DIR="/opt/comfyui-api-wrapper"
+WRAPPER_REF="e1d04af1f3bbd2d44c33e0adf419d6ca57dedd88"
 PYTHON_BIN="/venv/main/bin/python"
 RUNTIME_BUNDLE_REF="${RUNTIME_BUNDLE_REF:?RUNTIME_BUNDLE_REF must pin the public runtime bundle}"
 BUNDLE_BASE="https://raw.githubusercontent.com/manu-tej/runtime-e2c9/${RUNTIME_BUNDLE_REF}"
@@ -51,6 +53,15 @@ install_requirements() {
     "$PYTHON_BIN" -m pip install --no-cache-dir -q -r "$path"
   fi
 }
+
+log "pinning API wrapper with inline base64 output support"
+if [[ -d "$WRAPPER_DIR/.git" ]]; then
+  git -C "$WRAPPER_DIR" fetch --quiet --depth 1 origin "$WRAPPER_REF"
+  git -C "$WRAPPER_DIR" checkout --quiet --force "$WRAPPER_REF"
+else
+  clone_at https://github.com/ai-dock/comfyui-api-wrapper.git "$WRAPPER_REF" "$WRAPPER_DIR"
+fi
+install_requirements "$WRAPPER_DIR/requirements.txt"
 
 download_asset() {
   local relative="$1"
