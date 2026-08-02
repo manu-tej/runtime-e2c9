@@ -27,6 +27,14 @@ if [[ ! -x "$PYTHON_BIN" ]]; then
   PYTHON_BIN="$(command -v python3)"
 fi
 
+# Vast's rolling base-image tag can contain an older ComfyUI checkout even
+# when COMFYUI_VERSION is supplied as an environment variable. Pin the exact
+# core revision validated by the Modal runtime before installing custom nodes.
+log "pinning ComfyUI v0.29.2"
+git -C "$COMFY_DIR" fetch --quiet --depth 1 origin tag v0.29.2
+git -C "$COMFY_DIR" checkout --quiet --force v0.29.2
+"$PYTHON_BIN" -m pip install --no-cache-dir -q -r "$COMFY_DIR/requirements.txt"
+
 if ! command -v aria2c >/dev/null 2>&1; then
   apt-get update -qq
   DEBIAN_FRONTEND=noninteractive apt-get install -y -qq aria2 unzip
