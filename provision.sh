@@ -62,7 +62,12 @@ download_asset() {
     return 0
   fi
 
-  rm -f "$partial"
+  # Preserve aria2's partial data and control file across provider reboots and
+  # provisioning retries. If the control file is missing, a sparse partial
+  # cannot be resumed safely because its completed segment map is unknown.
+  if [[ -f "$partial" && ! -f "${partial}.aria2" ]]; then
+    rm -f "$partial"
+  fi
   log "downloading $relative"
   aria2c \
     --allow-overwrite=true \
