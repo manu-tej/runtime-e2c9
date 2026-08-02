@@ -7,6 +7,7 @@ image-processing features.
 
 from __future__ import annotations
 
+import json
 import math
 from typing import Any
 
@@ -206,6 +207,32 @@ class SystemNotification:
         return (any,)
 
 
+class JsonExtractString:
+    """Legacy equivalent of ComfyUI's newer core JSON text extractor."""
+
+    @classmethod
+    def INPUT_TYPES(cls) -> dict[str, dict[str, tuple[Any, ...]]]:
+        return {
+            "required": {
+                "json_string": ("STRING", {"multiline": True}),
+                "key": ("STRING", {"multiline": False}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "extract"
+    CATEGORY = "Comfy Fleet/Compatibility"
+
+    def extract(self, json_string: str, key: str) -> tuple[str]:
+        try:
+            data = json.loads(json_string)
+        except (json.JSONDecodeError, TypeError):
+            return ("",)
+        if not isinstance(data, dict) or key not in data or data[key] is None:
+            return ("",)
+        return (str(data[key]),)
+
+
 NODE_CLASS_MAPPINGS = {
     "ImpactIfNone": ImpactIfNone,
     "ImpactCompare": ImpactCompare,
@@ -215,6 +242,7 @@ NODE_CLASS_MAPPINGS = {
     "AudioToFrameCount": AudioToFrameCount,
     "FancyTimerNode": FancyTimerNode,
     "SystemNotification|pysssss": SystemNotification,
+    "JsonExtractString": JsonExtractString,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -226,6 +254,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "AudioToFrameCount": "Audio Frame Count (Comfy Fleet)",
     "FancyTimerNode": "Execution Timer (Compatibility)",
     "SystemNotification|pysssss": "Completion Signal (Compatibility)",
+    "JsonExtractString": "Extract Text from JSON (Compatibility)",
 }
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
