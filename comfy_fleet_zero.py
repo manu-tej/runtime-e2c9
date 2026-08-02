@@ -35,6 +35,38 @@ async def cleanup_inputs(request: web.Request) -> web.Response:
     return web.json_response({"removed": removed})
 
 
+@PromptServer.instance.routes.post("/comfy-fleet/cleanup-artifacts")
+async def cleanup_artifacts(request: web.Request) -> web.Response:
+    """Delete exact output/temp records immediately after successful transfer."""
+    payload = await request.json()
+    records = payload.get("records", []) if isinstance(payload, dict) else []
+    roots = {
+        "output": Path(folder_paths.get_output_directory()).resolve(),
+        "temp": Path(folder_paths.get_temp_directory()).resolve(),
+    }
+    removed = 0
+    if isinstance(records, list):
+        for record in records[:16]:
+            if not isinstance(record, dict):
+                continue
+            root = roots.get(record.get("type"))
+            filename = record.get("filename")
+            subfolder = record.get("subfolder", "")
+            if root is None or not isinstance(filename, str) or Path(filename).name != filename:
+                continue
+            if not isinstance(subfolder, str) or Path(subfolder).is_absolute():
+                continue
+            candidate = (root / subfolder / filename).resolve()
+            if candidate != root and root not in candidate.parents:
+                continue
+            try:
+                candidate.unlink()
+                removed += 1
+            except FileNotFoundError:
+                pass
+    return web.json_response({"removed": removed})
+
+
 class ComfyFleetLoadImageBase64:
     """Decode a transient image from the request body without writing a file."""
 
